@@ -40,7 +40,9 @@ All the primitives were there, so my first-pass used a single thread, worked
 it's way down a directory-tree, calculating all checksums.  The result was
 ts.go. You can see some screenshots I've attached wherein I used the
 cygwin commandline like:
+
 	     ts.exe .
+
 and the powershell command
     	     ts.exe $pwd
 
@@ -57,13 +59,29 @@ one to hold the list of the 'work to be done' (from the filepath.walk output),
 and one to take each workers results (a formatted string including the checksum)
 and output it; initially to the screen.
 
+Initially, after initiating all the threads, I 'sit on' a Scanln, waiting for
+the calculations to finish.
+
+There's one queue, the workQueue, which provides 'fan-out' from the single
+directory-scanner, to the workers, each of which grabs a 'message' (a string,
+in this case) on which to work; calculates the checksum, formats the output,
+and puts the results on the Outputter's queue called outQueue.
+
+Once complete, the operator presses ENTER and all subsidiary-threads are sent
+0-length-strings, signalling termination.
+
 So ts5.go now utilizes all 8 of my Thinkpad's CPUs, and the Outputter task
 can be modified to submit the results to the screen, a file, or a database.
 
-After initiating alal the threads, I 'sit on' a Scanln, waiting for the
-calculations to finish. Once complete, the operator presses ENTER and all
-subsidiary-threads are sent 0-length-strings, signalling termination.
-
-I'll continue modifying this and get to a more usable 'product'.
-
+Initially happy with my results, I'll continue modifying this and get to a
+more usable 'product'.
 jpsthecelt-080315
+
+OK, now modified to ts6.go to use a *fInfo structure in the workQueue, so as to
+communicate information like file-modification-time from the 'treewalk-scanner'
+to the workers.  Seems to work fine.
+
+-Now modifying to allow both MD5 and SHA1 checksums, as well as adding the
+endpoint hostname to the output string.
+
+jps-080415
