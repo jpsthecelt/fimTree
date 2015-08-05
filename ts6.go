@@ -1,6 +1,8 @@
+// Calculate checksums for each file in a directory-tree
 package main
 
 import (
+	"crypto/md5"
 	"crypto/sha1"
 	"flag"
 	"fmt"
@@ -20,17 +22,14 @@ type fInfo struct {
 	modTime time.Time
 }
 
-const CHUNKSIZE uint64 = 8192 // This'll work -- pretty standard size
+const CHUNKSIZE uint64 = 8192
+
 var wrkQueue = make(chan *fInfo)
 var outQueue = make(chan string)
 
-func fmtFileInfo(pathname string, fi os.FileInfo, err error) *fInfo {
-	f := &fInfo{name: pathname, sz: fi.Size(), mode: fi.Mode(), modTime: fi.ModTime()}
-	return f
-}
-
-func checkSum(threadID int, pathname string, fi *fInfo, err error) string {
+func checkSumSHA1(threadID int, pathname string, fi *fInfo, err error) string {
 	var filesize int64 = fi.sz
+	var hostname = "grasskeet-ubS"
 
 	file, err := os.Open(pathname)
 	if err != nil {
@@ -51,11 +50,36 @@ func checkSum(threadID int, pathname string, fi *fInfo, err error) string {
 		io.WriteString(hash, string(buf)) // 'tack on' the end
 	}
 
-	return fmt.Sprintf("%s,%d,%x,thread:%d", pathname, filesize, hash.Sum(nil), threadID)
+	return fmt.Sprintf("%s:%s,%d,%x,%x,thread:%d", hostname, pathname, filesize, hash.Sum(nil), fi.modTime, threadID)
 }
 
-func walkPathNSum(path string, f os.FileInfo, err error) error {
-	wrkQueue <- fmtFileInfo(path, f, err)
+func checkSumMD5(threadID int, pathname string, fi *fInfo, err error) string {
+	var filesize int64 = fi.sz
+
+	file, err := os.Open(pathname)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer file.Close()
+
+	blocks := uint64(math.Ceil(float64(filesize) / float64(CHUNKSIZE)))
+
+	hash := md5.New()
+
+	for i := uint64(0); i < blocks; i++ {
+		blocksize := int(math.Min(float64(CHUNKSIZE), float64(filesize-int64(i*CHUNKSIZE))))
+		buf := make([]byte, blocksize)
+
+		file.Read(buf)
+		io.WriteString(hash, string(buf)) // 'tack on' the end
+	}
+
+	return fmt.Sprintf("%s,%d,%x,%x,thread:%d", pathname, filesize, hash.Sum(nil), fi.modTime, threadID)
+}
+
+func walkPathNSum(pathname string, f os.FileInfo, err error) error {
+	wrkQueue <- &fInfo{name: pathname, sz: f.Size(), mode: f.Mode(), modTime: f.ModTime()}
 	return nil
 }
 
@@ -68,7 +92,11 @@ func Worker(i int, inq chan *fInfo, outq chan string, isMD5 bool) {
 		if ckString == nil {
 			break
 		}
-		outq <- checkSum(i, ckString.name, ckString, err)
+		if isMD5 {
+			outq <- checkSumMD5(i, ckString.name, ckString, err)
+		} else {
+			outq <- checkSumSHA1(i, ckString.name, ckString, err)
+		}
 	}
 }
 
@@ -87,11 +115,14 @@ func Outputter(outq chan string) {
 
 func main() {
 	var pause string
+	var hostname = os.Getenv("HOSTNAME")
+
 	// Assumes that the first argument is a FQDN, no '~' and uses '/'s vs. '\'s
 	flag.Parse()
 	root := flag.Arg(0)
 	ncpu := runtime.NumCPU()
-	fmt.Println("\nWorking with %d CPUs/threads", ncpu)
+	fmt.Println("\nHostname = %s", hostname)
+	fmt.Println("\nWorker threads: ", ncpu)
 	runtime.GOMAXPROCS(ncpu)
 
 	// spawn workers
