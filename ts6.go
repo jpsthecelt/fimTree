@@ -10,21 +10,27 @@ import (
 	"path/filepath"
 	"runtime"
 	//	"strings"
-	//	"time"
+	"time"
 )
 
-const CHUNKSIZE uint64 = 8192 // This'll work -- pretty standard size
-var wrkQueue = make(chan string)
-var outQueue = make(chan string)
-
-func fmtFileInfo(pathname string, fi os.FileInfo, err error) string {
-	//	var filesize int64 = fi.Size()
-	//	var tmpString = fmt.Sprintf("%s,%d,%x", pathname, filesize, 0)
-	return fmt.Sprintf("%s", pathname)
+type fInfo struct {
+	name    string
+	sz      int64
+	mode    os.FileMode
+	modTime time.Time
 }
 
-func checkSum(threadID int, pathname string, fi os.FileInfo, err error) string {
-	var filesize int64 = fi.Size()
+const CHUNKSIZE uint64 = 8192 // This'll work -- pretty standard size
+var wrkQueue = make(chan *fInfo)
+var outQueue = make(chan string)
+
+func fmtFileInfo(pathname string, fi os.FileInfo, err error) *fInfo {
+	f := &fInfo{name: pathname, sz: fi.Size(), mode: fi.Mode(), modTime: fi.ModTime()}
+	return f
+}
+
+func checkSum(threadID int, pathname string, fi *fInfo, err error) string {
+	var filesize int64 = fi.sz
 
 	file, err := os.Open(pathname)
 	if err != nil {
@@ -49,31 +55,20 @@ func checkSum(threadID int, pathname string, fi os.FileInfo, err error) string {
 }
 
 func walkPathNSum(path string, f os.FileInfo, err error) error {
-	//	wrkQueue <- checkSum(path, f, err)
 	wrkQueue <- fmtFileInfo(path, f, err)
 	return nil
 }
 
-func Worker(i int, inq chan string, outq chan string, isMD5 bool) {
-	var ckString string
-	//	var string_components []string
-	//	var filesize int64
+func Worker(i int, inq chan *fInfo, outq chan string, isMD5 bool) {
+	var ckString *fInfo
+	var err error
 
 	for {
 		ckString = <-inq
-		if len(ckString) == 0 {
+		if ckString == nil {
 			break
 		}
-		//		string_components := strings.Split(ckString, ",")
-		//		filetype := string_components[0]
-		//	filepath := string_components[0]
-		//		fmt.Sscanf(string_components[2], "%d", &filesize)
-		fs, err := os.Stat(ckString)
-		if err != nil {
-			panic(err.Error())
-		}
-		outq <- checkSum(i, ckString, fs, err)
-		//		time.Sleep(time.Second * 1)
+		outq <- checkSum(i, ckString.name, ckString, err)
 	}
 }
 
@@ -92,11 +87,11 @@ func Outputter(outq chan string) {
 
 func main() {
 	var pause string
-	// Assumes that the first argument is a FQDN
+	// Assumes that the first argument is a FQDN, no '~' and uses '/'s vs. '\'s
 	flag.Parse()
 	root := flag.Arg(0)
 	ncpu := runtime.NumCPU()
-	fmt.Println("\nWorking with %v CPUs/threads", ncpu)
+	fmt.Println("\nWorking with %d CPUs/threads", ncpu)
 	runtime.GOMAXPROCS(ncpu)
 
 	// spawn workers
@@ -106,10 +101,11 @@ func main() {
 	go Outputter(outQueue)
 
 	filepath.Walk(root, walkPathNSum)
-	fmt.Println("\nPress ENTER to continue")
+	//	fmt.Println("\nPress ENTER to continue"0)
 	fmt.Scanln(&pause)
-	for i:= 0; i<ncpu; i++ {
-		wrkQueue <- ""
+	fmt.Println("\n")
+	for i := 0; i < ncpu; i++ {
+		wrkQueue <- nil
 	}
 	outQueue <- ""
 }
