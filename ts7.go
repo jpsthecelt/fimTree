@@ -115,13 +115,13 @@ func Outputter(outq chan string) {
 }
 
 func main() {
-	var pause string
+//	var pause string
 	var hostname = os.Getenv("HOSTNAME")
 	var numberCpus = runtime.NumCPU()
 
-	// Assumes that the first argument is a FQDN, no '~' and uses '/'s vs. '\'s
 	nPtr := flag.Int("cpuLimit", 0, "an int")
 
+	// Assumes that the first argument is a FQDN, no '~' and uses '/'s vs. '\'s
 	flag.Parse()
 	root := flag.Arg(0)
 
@@ -135,7 +135,7 @@ func main() {
 		fmt.Println("\nWorker threads: ", numberCpus)
 	}
 
-	fmt.Println("\nHostname = %v", hostname)
+	fmt.Println("\n(apparent) Hostname = %s", hostname)
 
 	// spawn workers
 	for i := 0; i < numberCpus; i++ {
@@ -148,8 +148,8 @@ func main() {
 	go Outputter(outQueue)
 
 	filepath.Walk(root, walkPathNSum)
-	//	fmt.Println("\nPress ENTER to continue"0)
-	fmt.Scanln(&pause)
+//	fmt.Println("\nPress ENTER to continue"0)
+//	fmt.Scanln(&pause)
 	fmt.Println("\n")
 	for i := 0; i < numberCpus; i++ {
 		wrkQueue <- nil
