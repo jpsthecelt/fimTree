@@ -73,6 +73,8 @@ Once complete, the operator presses ENTER and all subsidiary-threads are sent
 So ts5.go now utilizes all 8 of my Thinkpad's CPUs, and the Outputter task
 can be modified to submit the results to the screen, a file, or a database.
 
+Modification History
+---------------------------
 Initially happy with my results, I'll continue modifying this and get to a
 more usable 'product'.
 jpsthecelt-080315
@@ -86,16 +88,21 @@ endpoint hostname to the output string.
 
 jps-080415
 
-OK, just lost all ts7.go changes (including a lot of 8/4/15).  Had to go back and 'reconstitute' them, so I added some additional changes:
+OK, just lost all ts7.go changes (including a lot of the 8/4/15 changes).  Had to go back and 'reconstitute' them, so I added some additional changes:
 - Added commandline -cpuLimit=x switch (& concommitant 'main' processing), as well as re-adding md5/sha1 back, and modifying the Worker class to take the address of the appropriate checksum function instead of a boolean 'isMd5' flag. Also added a MD5: or SHA1: prefix to each line to indicate what style of checksum. 
 
-- This was less painful than I though, as I found that my newly-acquired intelliJ/idea editor greatly facilitated modification/debug of aforementioned changes (uh-oh -- looks like the cpuLimit doesn't work; will update later).
+- This was less painful than I thought, as I found that my newly-acquired intelliJ/idea editor greatly facilitated modification/debug of aforementioned changes (uh-oh -- looks like the cpuLimit doesn't work; will update later).
 
 jps-120715
 
-All right; fixed various errors:
--- cpuLimit=n switch now properly limits the number of CPUs to use in the calculations,
--- Added file-access-error logic, so that it gives a message and shows -1 for that file's checksum
--- Now correctly finds the hostname on *nix & windows type systems.
+ts8.go -- All right; fixed various errors:
+- cpuLimit=n switch now properly limits the number of CPUs to use in the calculations,
+- Added file-access-error logic, so that it gives a message and shows -1 for that file's checksum
+- Now correctly finds the hostname on *nix & windows type systems.
+
+Also noticed some weirdness: on linux, if you do not define your environment variables explicitly (i.e. export HOSTNAME=blah)
+they don't get read by the GO runtime.... weird!
+
+Also, I was happily/easily able to cross-compile for the raspberry-pi and it worked great, there.
 
 jps-122115
