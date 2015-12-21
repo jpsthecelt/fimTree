@@ -92,3 +92,10 @@ OK, just lost all ts7.go changes (including a lot of 8/4/15).  Had to go back an
 - This was less painful than I though, as I found that my newly-acquired intelliJ/idea editor greatly facilitated modification/debug of aforementioned changes (uh-oh -- looks like the cpuLimit doesn't work; will update later).
 
 jps-120715
+
+All right; fixed various errors:
+-- cpuLimit=n switch now properly limits the number of CPUs to use in the calculations,
+-- Added file-access-error logic, so that it gives a message and shows -1 for that file's checksum
+-- Now correctly finds the hostname on *nix & windows type systems.
+
+jps-122115
