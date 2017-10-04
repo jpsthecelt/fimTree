@@ -28,7 +28,7 @@ const CHUNKSIZE uint64 = 8192
 
 var wrkQueue = make(chan *fInfo)
 var outQueue = make(chan string)
-var hostname = os.Getenv("HOSTNAME")
+var hostname, _ = os.Hostname()
 
 func checkSumSHA1(threadID int, pathname string, hname string, fi *fInfo, err error) string {
 	var filesize int64 = fi.sz
@@ -135,12 +135,16 @@ func main() {
 		fmt.Println("\nWorker threads: ", numberCpus)
 	}
 
-	if runtime.GOOS == "windows" {
-		hostname = os.Getenv("COMPUTERNAME")
-	} else {
-		hostname = os.Getenv("HOSTNAME")
-	}
-	fmt.Println("\n(apparent) Hostname = ", hostname)
+//	fmt.Println("Start of Environment Variables: ")
+//	for _, e := range os.Environ() {
+//		pair := strings.Split(e, "=")
+//		fmt.Println(pair[0])
+//
+//	if runtime.GOOS == "windows" {
+//		hostname = os.Getenv("COMPUTERNAME")
+//	} else {
+//		hostname = os.Getenv("$HOSTNAME")
+//	}
 
 	// spawn workers
 	for i := 0; i < *nPtr; i++ {
