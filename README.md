@@ -106,3 +106,7 @@ they don't get read by the GO runtime.... weird!
 Also, I was happily/easily able to cross-compile for the raspberry-pi and it worked great, there.
 
 jps-122115
+
+fimTree -- Reorganized directory, as golang tool assumptions have changed.  Now, using go build, the executable ends up being called fimTree, and is in the main directory.  Also, fixed the 'printout of hostname' problem.  Still does the same basic job, though
+
+jps-100517

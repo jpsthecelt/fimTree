@@ -135,17 +135,6 @@ func main() {
 		fmt.Println("\nWorker threads: ", numberCpus)
 	}
 
-//	fmt.Println("Start of Environment Variables: ")
-//	for _, e := range os.Environ() {
-//		pair := strings.Split(e, "=")
-//		fmt.Println(pair[0])
-//
-//	if runtime.GOOS == "windows" {
-//		hostname = os.Getenv("COMPUTERNAME")
-//	} else {
-//		hostname = os.Getenv("$HOSTNAME")
-//	}
-
 	// spawn workers
 	for i := 0; i < *nPtr; i++ {
 		if strings.Contains(allArgs, "md5") {
