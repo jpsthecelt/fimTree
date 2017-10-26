@@ -1,4 +1,9 @@
-// Calculate checksums for each file in a directory-tree
+// Calculate checksums for each file in a directory-tree,
+// suitable for use with management systems such as BigFix and Casper.
+//
+// Notice the program should be called from the commandline as follows
+//  ts8-mac . sha1 -cpuLimit=8
+//
 package main
 
 import (
