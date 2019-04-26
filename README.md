@@ -1,5 +1,6 @@
 # fimTree
 Enable File Integrity Monitoring on directory trees
+![](doc/treeSumFromPowershell.gif)
 
 The Need
 --------
@@ -42,9 +43,10 @@ ts.go. You can see some screenshots I've attached wherein I used the
 cygwin commandline like:
 
 	     ts.exe .
+![](doc/treeSumFromCygwin.gif)
 
-and the powershell command
-    	     ts.exe $pwd
+and the command invoked from Powershell:
+![](doc/treeSumFromPowershell.gif)
 
 Now, another thing I liked was that both languages could easily utilize multiple
 processor-cores, and primitives like message-queue abstractions allowed easy
@@ -110,3 +112,5 @@ jps-122115
 fimTree -- Reorganized directory, as golang tool assumptions have changed.  Now, using go build, the executable ends up being called fimTree, and is in the main directory.  Also, fixed the 'printout of hostname' problem.  Still does the same basic job, though
 
 jps-100517
+
+Notice, though, that with Powershell, this is all kind of 'academic', as they have the Get-FileHash command, which somewhat obviates the need for it on Windows (OTOH, I do have a switch-feature to indicate the number of CPUs)
